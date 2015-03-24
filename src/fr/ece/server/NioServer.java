@@ -14,7 +14,12 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -22,7 +27,9 @@ import java.util.Set;
  *
  */
 public class NioServer extends AbstractMultichatServer {
-
+ 
+	Map<Integer, SocketChannel> clientsmap = new HashMap<>();
+	
 	/**
 	 * @param address
 	 * @param port
@@ -56,6 +63,7 @@ public class NioServer extends AbstractMultichatServer {
 				
 				if (key.isAcceptable()) {
 					SocketChannel client = ((ServerSocketChannel)key.channel()).accept();
+					clientsmap.put(new Integer(client.hashCode()), client);
 					client.configureBlocking(false);
 					client.register(selector, SelectionKey.OP_READ);
 					System.out.println(client.getRemoteAddress() + " Connected");
@@ -71,6 +79,7 @@ public class NioServer extends AbstractMultichatServer {
 						cbuf.compact();
 					}else{
 						System.out.println(client.getRemoteAddress() + " Disconnected");
+						clientsmap.remove(client.hashCode());
 						client.close();
 					}
 				}
@@ -82,31 +91,20 @@ public class NioServer extends AbstractMultichatServer {
 
 	}
 	
-	public void sendToAll(Selector selector, String message) {
+	public void sendToAll(String message) {
 		
-		try {
-			selector.select();
-			Set<SelectionKey> set = selector.selectedKeys();
-			Iterator<SelectionKey> keyIterator = set.iterator();
-			while(keyIterator.hasNext()) {
-				SelectionKey key = keyIterator.next();
-				
-				if (key.isWritable()) {
-					SocketChannel client = ((ServerSocketChannel)key.channel()).accept();
-					ByteBuffer bbuf = ByteBuffer.wrap(message.getBytes());
-					client.write(bbuf);
-				}	
-				keyIterator.remove();
-				
+		for(Entry<Integer,SocketChannel> entry : clientsmap.entrySet()) {
+			ByteBuffer bbuf = ByteBuffer.wrap(message.getBytes());
+			
+			try {
+				while(bbuf.hasRemaining()) {
+					entry.getValue().write(bbuf);
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
-		
-		
-		
-		
 	}
 
 	/* (non-Javadoc)
@@ -133,6 +131,7 @@ public class NioServer extends AbstractMultichatServer {
 					
 					if (key.isAcceptable()) {
 						SocketChannel client = ((ServerSocketChannel)key.channel()).accept();
+						clientsmap.put(new Integer(client.hashCode()), client);
 						client.configureBlocking(false);
 						client.register(selector, SelectionKey.OP_READ);
 						System.out.println(client.getRemoteAddress() + " Connected");
@@ -144,10 +143,12 @@ public class NioServer extends AbstractMultichatServer {
 							Charset charset = Charset.defaultCharset();
 							bbuf.flip();
 							CharBuffer cbuf = charset.decode(bbuf);
+							sendToAll(cbuf.toString());
 							System.out.println(cbuf);
 							cbuf.compact();
 						}else{
 							System.out.println(client.getRemoteAddress() + " Disconnected");
+							clientsmap.remove(client.hashCode());
 							client.close();
 						}
 					}
