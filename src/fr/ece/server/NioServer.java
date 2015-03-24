@@ -38,6 +38,8 @@ public class NioServer extends AbstractMultichatServer {
 		super(address, port);
 	}
 
+	
+	//NOT USED ===> Runnable (use run instead)
 	/*
 	 * (non-Javadoc)
 	 * 

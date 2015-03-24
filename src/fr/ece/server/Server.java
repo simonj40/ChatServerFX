@@ -37,6 +37,8 @@ public class Server extends AbstractMultichatServer {
 		super(address, port);
 	}
 
+	
+	//NOT USED ===> Runnable (use run instead)
 	public void start() throws IOException {
 		ServerSocket socket = new ServerSocket(this.getPort(), BACKLOG, this.getAddress());
 		while (true) {
