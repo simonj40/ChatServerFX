@@ -48,6 +48,36 @@ public class Server extends AbstractMultichatServer {
 		}
 		
 	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Runnable#run()
+	 */
+	@Override
+	public void run() {
+	
+		ServerSocket socket = null;
+		try {
+			socket = new ServerSocket(this.getPort(), BACKLOG, this.getAddress());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		while (true) {
+			Socket con;
+			try {
+				con = socket.accept();
+				Messenger messenger = new Messenger(con);
+				(new Thread(messenger)).start();
+				System.out.println("Connection accepted from "
+						+ con.getInetAddress());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}		
+		}
+	}
+	
+	
 
 	private class Broadcaster implements Runnable {
 
@@ -159,4 +189,6 @@ public class Server extends AbstractMultichatServer {
 			}
 		}
 	}
+
+	
 }

@@ -59,7 +59,7 @@ public class NioServer extends AbstractMultichatServer {
 					client.configureBlocking(false);
 					client.register(selector, SelectionKey.OP_READ);
 					System.out.println(client.getRemoteAddress() + " Connected");
-				}
+				}	
 				if (key.isReadable()) {
 					SocketChannel client = (SocketChannel) key.channel();
 					ByteBuffer bbuf = ByteBuffer.allocate(8192);
@@ -80,5 +80,87 @@ public class NioServer extends AbstractMultichatServer {
 
 		}
 
+	}
+	
+	public void sendToAll(Selector selector, String message) {
+		
+		try {
+			selector.select();
+			Set<SelectionKey> set = selector.selectedKeys();
+			Iterator<SelectionKey> keyIterator = set.iterator();
+			while(keyIterator.hasNext()) {
+				SelectionKey key = keyIterator.next();
+				
+				if (key.isWritable()) {
+					SocketChannel client = ((ServerSocketChannel)key.channel()).accept();
+					ByteBuffer bbuf = ByteBuffer.wrap(message.getBytes());
+					client.write(bbuf);
+				}	
+				keyIterator.remove();
+				
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		
+		
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Runnable#run()
+	 */
+	@Override
+	public void run()  {
+		ServerSocketChannel server;
+		try {
+			server = ServerSocketChannel.open();
+			server.bind(new InetSocketAddress(this.getAddress(), this.getPort()));
+			server.configureBlocking(false);
+			// SocketChannel client = server.accept();
+			// System.out.println("New Client :" + client.getRemoteAddress());
+			Selector selector = Selector.open();
+			server.register(selector, SelectionKey.OP_ACCEPT);
+
+			while (true) {
+				selector.select();
+				Set<SelectionKey> set = selector.selectedKeys();
+				Iterator<SelectionKey> keyIterator = set.iterator();
+				while(keyIterator.hasNext()) {
+					SelectionKey key = keyIterator.next();
+					
+					if (key.isAcceptable()) {
+						SocketChannel client = ((ServerSocketChannel)key.channel()).accept();
+						client.configureBlocking(false);
+						client.register(selector, SelectionKey.OP_READ);
+						System.out.println(client.getRemoteAddress() + " Connected");
+					}
+					if (key.isReadable()) {
+						SocketChannel client = (SocketChannel) key.channel();
+						ByteBuffer bbuf = ByteBuffer.allocate(8192);
+						if(client.read(bbuf) != -1){
+							Charset charset = Charset.defaultCharset();
+							bbuf.flip();
+							CharBuffer cbuf = charset.decode(bbuf);
+							System.out.println(cbuf);
+							cbuf.compact();
+						}else{
+							System.out.println(client.getRemoteAddress() + " Disconnected");
+							client.close();
+						}
+					}
+					keyIterator.remove();
+					
+				}
+
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
 	}
 }

@@ -9,7 +9,7 @@ import java.net.InetAddress;
  * @author Simon
  *
  */
-public abstract class  AbstractMultichatServer implements MultichatServer  {
+public abstract class  AbstractMultichatServer implements MultichatServer, Runnable   {
 
 	private InetAddress address;
 	private int port;

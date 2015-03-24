@@ -3,30 +3,44 @@ package application;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Map;
 
+import fr.ece.client.Client;
+import fr.ece.client.ClientInterface;
+import fr.ece.client.MulticastClient;
 import fr.ece.server.AbstractMultichatServer;
 import fr.ece.server.NioServer;
 import fr.ece.server.Server;
 import gnu.getopt.Getopt;
 import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 
 
 public class Main extends Application {
 	
 	private static int PORT = 1234;
-	private static String OPT = "hnsc:a:p";
+	private static String OPT = "hnscma:p:";
 	private static String HELP = "Help !";
+	
+	private static ClientInterface client;
+	
 	
 	@Override
 	public void start(Stage primaryStage) {
+
 		try {
-			BorderPane root = new BorderPane();
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("ClientView.fxml"));
+			GridPane root = (GridPane)loader.load();
+			ClientController controller = (ClientController)loader.getController();
+			controller.setClient(client);
 			Scene scene = new Scene(root,400,400);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			primaryStage.setScene(scene);
+			primaryStage.setTitle("Chat Client");
 			primaryStage.show();
 		} catch(Exception e) {
 			e.printStackTrace();
@@ -35,52 +49,60 @@ public class Main extends Application {
 	
 	public static void main(String[] args) {
 		
-		//launch(args);
-		
 		AbstractMultichatServer server = null;
 		
-		InetAddress addess = null;
+		InetAddress address = null;
 		Integer port = null;
 		
 		boolean helpOPT =false;
 		boolean nioOPT = false;
 		boolean serverOPT = false;
 		boolean clientOPT = false;
+		boolean multicast = false;
 		
 		int c;
 		Getopt g = new Getopt("ChatServer", args, OPT);
 		//read options and arguments
 		while( (c = g.getopt()) != -1){
-			
 			switch(c){
-			
 				case 'h' :
 					helpOPT = true;
 					System.out.print("Option help selected");
+					break;
 				case 'n' :
 					nioOPT = true;
 					System.out.print("Option NIO selected");
+					break;
 				case 's' :
 					serverOPT = true;
 					System.out.println("Option start server selected");
+					break;
 				case 'c' :
 					clientOPT = true;
 					System.out.println("Option client selected");
+					break;
+				case 'm' :
+					multicast = true;
+					System.out.println("Option multicast client selected");
+					break;
 				case 'a' :
 					System.out.println("Option address selected");
 					try {
-						addess = InetAddress.getByName(g.getOptarg());
+						address = InetAddress.getByName(g.getOptarg());
 					} catch (UnknownHostException e) {
-						addess = null;
+						address = null;
 					}
+					break;
 				case 'p' :
 					System.out.println("Option port selected");
 					try {
-						int p = Integer.parseInt(g.getOptarg());
+						String sPort = g.getOptarg();
+						int p = Integer.parseInt(sPort);
 						port = new Integer(p);
 					} catch (NumberFormatException e) {
 						port = null;
 					}
+					break;
 			}
 		}
 		
@@ -90,35 +112,48 @@ public class Main extends Application {
 			return;
 		}
 		
-		if(addess == null){// check Address
+		if(address == null){// check Address
 			System.out.println("Error : Invalid address...");
 			return;
 		}
-		if(port == null){//Chck port
+		if(port == null){//Check port
 			System.out.println("Error : Invalid port...");
 			return;
-		}else if(port < 0 || port < 65535 ){
+		}else if(port.intValue() < 0 || port.intValue() > 65535 ){
 			System.out.println("Error : Invalid port...");
 			return;
 		}
-		if(!serverOPT){
+		
+		if(serverOPT){
 			if(nioOPT){
-				server = new NioServer(addess, port);
+				server = new NioServer(address, port);
 			}else{
-				server = new Server(addess, port);
+				server = new Server(address, port);
 			}
+			(new Thread(server)).start();
+		}else if (nioOPT) {
+			server = new NioServer(address, port);
+			(new Thread(server)).start();
+		}
+		
+		if(clientOPT && !multicast){
 			try {
-				server.start();
+				client = new Client(address, port);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}else if (!clientOPT && multicast) {
+			try {
+				client = new MulticastClient(address, port);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 		
-		if(clientOPT){
-			//launch client interface
-		}
-		
+		if(clientOPT || multicast) launch(args);
+		else return;
 
 		/*
 		try {
