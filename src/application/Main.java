@@ -13,6 +13,7 @@ import fr.ece.server.AbstractMultichatServer;
 import fr.ece.server.NioServer;
 import fr.ece.server.Server;
 import gnu.getopt.Getopt;
+import gnu.getopt.LongOpt;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
@@ -24,9 +25,6 @@ import javafx.scene.layout.GridPane;
 
 
 public class Main extends Application {
-	
-	private static String OPT = "hnscma:p:";
-	private static String HELP = "Help !";
 	
 	private static AbstractClient client;
 	private static ResourceBundle messages;
@@ -73,9 +71,24 @@ AbstractMultichatServer server = null;
 		boolean serverOPT = false;
 		boolean clientOPT = false;
 		boolean multicast = false;
+		boolean debug = false;
+		
+		String OPT = "hnscma:W;p:W;";
+		LongOpt[] longopts = new LongOpt[8];
+		
+		longopts[0] = new LongOpt("help", LongOpt.NO_ARGUMENT, null, 'h');
+		longopts[1] = new LongOpt("address", LongOpt.REQUIRED_ARGUMENT, null, 'a'); 
+		longopts[2] = new LongOpt("debug", LongOpt.NO_ARGUMENT, null, 'd');
+		longopts[3] = new LongOpt("multicast", LongOpt.NO_ARGUMENT, null, 'm');
+		longopts[4] = new LongOpt("nio", LongOpt.NO_ARGUMENT, null, 'n');
+		longopts[5] = new LongOpt("port", LongOpt.REQUIRED_ARGUMENT, null, 'p');
+		longopts[6] = new LongOpt("server", LongOpt.NO_ARGUMENT, null, 's');
+		longopts[7] = new LongOpt("client", LongOpt.NO_ARGUMENT, null, 'c');
+		
+		 //Getopt g = new Getopt("testprog", argv, "-:bc::d:hW;", longopts);
 		
 		int c;
-		Getopt g = new Getopt("ChatServer", args, OPT);
+		Getopt g = new Getopt("ChatServer", args, OPT, longopts);
 		//read options and arguments
 		while( (c = g.getopt()) != -1){
 			switch(c){
@@ -116,6 +129,9 @@ AbstractMultichatServer server = null;
 					} catch (NumberFormatException e) {
 						port = null;
 					}
+					break;
+				case 'd' :
+					debug = true;
 					break;
 			}
 		}
@@ -164,6 +180,13 @@ AbstractMultichatServer server = null;
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		} else if (clientOPT && multicast){
+			System.out.println(messages.getString("help"));
+			return;
+		}
+		
+		if(debug) {
+			//TODO do something
 		}
 		
 		if(clientOPT || multicast) launch(args);

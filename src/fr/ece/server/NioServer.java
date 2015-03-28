@@ -217,6 +217,7 @@ public class NioServer extends AbstractMultichatServer {
 						System.out.println(client.getRemoteAddress()
 								+ messages.getString("connected"));
 						String message = welcome;
+						message +="\n";
 						ByteBuffer bbuf = ByteBuffer.wrap(message
 								.getBytes());
 						client.write(bbuf);

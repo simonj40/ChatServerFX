@@ -66,6 +66,7 @@ public class ClientController {
 		client.send(message);
 		this.newMessage("You: "+message);
 		textSend.clear();
+		
 	}
 	
 	public void newMessage(String message){

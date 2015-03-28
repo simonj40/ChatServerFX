@@ -21,6 +21,9 @@ import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
+
 /**
  * @author Simon
  *
@@ -29,7 +32,8 @@ public class Server extends AbstractMultichatServer {
 
 	private int BACKLOG = 5;
 	private HashMap<Integer, BufferedWriter> writers = new HashMap<Integer, BufferedWriter>();
-	private Lock lock = new ReentrantLock();
+	private Lock buddyLock = new ReentrantLock();
+	private Lock writerLock = new ReentrantLock();
 
 
 	/**
@@ -40,10 +44,10 @@ public class Server extends AbstractMultichatServer {
 		super(address, port);
 	}
 
-	
-	//NOT USED ===> Runnable (use run instead)
+	// NOT USED ===> this class extends Runnable (use run instead)
 	public void start() throws IOException {
-		ServerSocket socket = new ServerSocket(this.getPort(), BACKLOG, this.getAddress());
+		ServerSocket socket = new ServerSocket(this.getPort(), BACKLOG,
+				this.getAddress());
 		while (true) {
 			Socket con = socket.accept();
 			Messenger messenger = new Messenger(con);
@@ -59,10 +63,11 @@ public class Server extends AbstractMultichatServer {
 	 */
 	@Override
 	public void run() {
-	
-ServerSocket socket = null;
+
+		ServerSocket socket = null;
 		try {
-			socket = new ServerSocket(this.getPort(), BACKLOG, this.getAddress());
+			socket = new ServerSocket(this.getPort(), BACKLOG,
+					this.getAddress());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -81,17 +86,29 @@ ServerSocket socket = null;
 			}		
 		}
 	}
-	
-	
+
+	private void updateBuddyList(){
+
+		buddyLock.lock();
+		String json = JSONValue.toJSONString(buddyMap);
+		System.out.println("JSON Array: "+json);
+		(new Thread( new Broadcaster(tag+json) )).start();;
+		buddyLock.unlock();
+
+	}
 
 	private class Broadcaster implements Runnable {
 
 		String message;
-		int hashcode;
+		Integer hashcode = null;
 
 		public Broadcaster(String message, int hashcode) {
 			this.message = message;
-			this.hashcode = hashcode;
+			this.hashcode = new Integer(hashcode);
+		}
+
+		public Broadcaster(String message) {
+			this.message = message;
 		}
 
 		/*
@@ -101,9 +118,9 @@ ServerSocket socket = null;
 		 */
 		@Override
 		public void run() {
-			lock.lock();
+			writerLock.lock();
 			for (Entry<Integer, BufferedWriter> entry : writers.entrySet()) {
-				if (entry.getKey().intValue() != hashcode) {
+				if (!entry.getKey().equals(hashcode)) {
 					try {
 						entry.getValue().write(message);
 						entry.getValue().newLine();
@@ -114,21 +131,26 @@ ServerSocket socket = null;
 					}
 				}
 			}
-			lock.unlock();
+			writerLock.unlock();
 		}
-
 	}
 
 	private class Messenger implements Runnable {
 
 		private Socket socket;
-
+		String nickname = defaultBuddyName;
+		boolean nicknameSet = false;
+		
 		/**
 		 * @param socket
 		 */
 		public Messenger(Socket socket) {
 			super();
 			this.socket = socket;
+			buddyLock.lock();
+			buddyMap.put(this.hashCode(), nickname);
+			buddyLock.unlock();
+			// TODO update buddy list
 		}
 
 		/*
@@ -140,7 +162,7 @@ ServerSocket socket = null;
 		public void run() {
 			InputStream input;
 			OutputStream output;
-			String nickname = "";
+
 			try {
 				input = socket.getInputStream();
 				output = socket.getOutputStream();
@@ -149,11 +171,15 @@ ServerSocket socket = null;
 				BufferedReader reader = new BufferedReader(
 						new InputStreamReader(input));
 				// store writer in map
+				writerLock.lock();
 				writers.put(this.hashCode(), writer);
+				writerLock.unlock();
 				// Welcome message
-				writer.write(messages.getString("welcome"));
+				writer.write(welcome);
 				writer.newLine();
 				writer.flush();
+				
+				updateBuddyList();
 				// read write loop
 				String message;
 				while (((message = reader.readLine()) != null)) {
@@ -163,11 +189,15 @@ ServerSocket socket = null;
 					// Broadcast message
 					String[] arrayMessage = message.split(" ");
 					if (arrayMessage[0].equals("/nick")) {
-						if (nickname.isEmpty()) {
+						if (!nicknameSet) {
 							// set nickname
 							nickname = arrayMessage[1];
-							writer.write(messages.getString("pseudo.set")
-									+ nickname);
+							buddyLock.lock();
+							buddyMap.put(this.hashCode(), this.nickname);
+							buddyLock.unlock();
+							updateBuddyList();
+							nicknameSet = true;
+							writer.write(messages.getString("pseudo.set") + nickname);
 							writer.newLine();
 							writer.flush();
 						} else {
@@ -178,15 +208,20 @@ ServerSocket socket = null;
 						}
 					} else {
 						new Thread(new Broadcaster(nickname + " : " + message,
-								this.hashCode())).start();
+								new Integer(this.hashCode()))).start();
 					}
-
 				}
 
 				System.out.println(messages.getString("connection.closed")
 						+ socket.getLocalAddress());
 				// remove writr from map
+				writerLock.lock();
 				writers.remove(this.hashCode());
+				writerLock.unlock();
+				buddyLock.lock();
+				buddyMap.remove(this.hashCode());
+				buddyLock.unlock();
+				updateBuddyList();
 
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
