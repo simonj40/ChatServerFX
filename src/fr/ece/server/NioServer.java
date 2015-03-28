@@ -21,7 +21,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -79,7 +81,7 @@ public class NioServer extends AbstractMultichatServer {
 					client.configureBlocking(false);
 					client.register(selector, SelectionKey.OP_READ);
 					System.out
-							.println(client.getRemoteAddress() + " Connected");
+							.println(client.getRemoteAddress() + messages.getString("connected"));
 				}
 				if (key.isReadable()) {
 					SocketChannel client = (SocketChannel) key.channel();
@@ -92,7 +94,7 @@ public class NioServer extends AbstractMultichatServer {
 						cbuf.compact();
 					} else {
 						System.out.println(client.getRemoteAddress()
-								+ " Disconnected");
+								+ messages.getString("disconnected"));
 						clientLock.lock();
 						clientsmap.remove(client.hashCode());
 						clientLock.unlock();
@@ -111,9 +113,9 @@ public class NioServer extends AbstractMultichatServer {
 
 		buddyLock.lock();
 		String json = JSONValue.toJSONString(buddyMap);
-		System.out.println("JSON Array: " + json);
+		System.out.println(messages.getString("json.array") + json);
 		(new Thread(new Broadcaster(tag + json))).start();
-		System.out.println("Send JSON: "+tag + json);
+		System.out.println(messages.getString("send.json")+tag + json);
 		buddyLock.unlock();
 	}
 
@@ -184,6 +186,7 @@ public class NioServer extends AbstractMultichatServer {
 	@Override
 	public void run() {
 		ServerSocketChannel server;
+		
 		try {
 			server = ServerSocketChannel.open();
 			server.bind(new InetSocketAddress(this.getAddress(), this.getPort()));
@@ -212,7 +215,7 @@ public class NioServer extends AbstractMultichatServer {
 						client.configureBlocking(false);
 						client.register(selector, SelectionKey.OP_READ);
 						System.out.println(client.getRemoteAddress()
-								+ " Connected");
+								+ messages.getString("connected"));
 						String message = welcome;
 						ByteBuffer bbuf = ByteBuffer.wrap(message
 								.getBytes());

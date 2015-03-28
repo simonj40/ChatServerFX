@@ -5,6 +5,8 @@ package fr.ece.server;
 
 import java.net.InetAddress;
 import java.util.HashMap;
+import java.util.Locale;
+import java.util.ResourceBundle;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -21,6 +23,7 @@ public abstract class  AbstractMultichatServer implements MultichatServer, Runna
 	protected HashMap<Integer, String> buddyMap = new HashMap<>();
 	protected Lock buddyLock = new ReentrantLock();
 
+	public static ResourceBundle messages;
 
 
 	
@@ -34,6 +37,9 @@ public abstract class  AbstractMultichatServer implements MultichatServer, Runna
 		super();
 		this.address = address;
 		this.port = port;
+		
+		Locale locale = new Locale("fr", "FR");
+		messages = ResourceBundle.getBundle("Internationalization",LocaleFR);
 	}
 	/**
 	 * @return the address

@@ -3,6 +3,8 @@ package application;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 import fr.ece.client.AbstractClient;
 import fr.ece.client.Client;
@@ -27,7 +29,7 @@ public class Main extends Application {
 	private static String HELP = "Help !";
 	
 	private static AbstractClient client;
-	
+	private static ResourceBundle messages;
 	
 	@Override
 	public void start(Stage primaryStage) {
@@ -48,7 +50,7 @@ public class Main extends Application {
 			Scene scene = new Scene(root,400,400);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			primaryStage.setScene(scene);
-			primaryStage.setTitle("Chat Client");
+			primaryStage.setTitle(messages.getString("chat.client.title"));
 			primaryStage.show();
 		} catch(Exception e) {
 			e.printStackTrace();
@@ -57,7 +59,11 @@ public class Main extends Application {
 	
 	public static void main(String[] args) {
 		
-		AbstractMultichatServer server = null;
+		Locale locale = new Locale("fr", "FR");
+		messages = ResourceBundle.getBundle("Internationalization",locale);
+
+
+AbstractMultichatServer server = null;
 		
 		InetAddress address = null;
 		Integer port = null;
@@ -75,26 +81,26 @@ public class Main extends Application {
 			switch(c){
 				case 'h' :
 					helpOPT = true;
-					System.out.print("Option help selected");
+					System.out.print(messages.getString("option.help.selected"));
 					break;
 				case 'n' :
 					nioOPT = true;
-					System.out.print("Option NIO selected");
+					System.out.print(messages.getString("option.nio.selected"));
 					break;
 				case 's' :
 					serverOPT = true;
-					System.out.println("Option start server selected");
+					System.out.println(messages.getString("option.start.server.selected"));
 					break;
 				case 'c' :
 					clientOPT = true;
-					System.out.println("Option client selected");
+					System.out.println(messages.getString("option.client.selected"));
 					break;
 				case 'm' :
 					multicast = true;
-					System.out.println("Option multicast client selected");
+					System.out.println(messages.getString("option.multicast.client.selected"));
 					break;
 				case 'a' :
-					System.out.println("Option address selected");
+					System.out.println(messages.getString("option.address.selected"));
 					try {
 						address = InetAddress.getByName(g.getOptarg());
 					} catch (UnknownHostException e) {
@@ -102,7 +108,7 @@ public class Main extends Application {
 					}
 					break;
 				case 'p' :
-					System.out.println("Option port selected");
+					System.out.println(messages.getString("option.port.selected"));
 					try {
 						String sPort = g.getOptarg();
 						int p = Integer.parseInt(sPort);
@@ -116,19 +122,19 @@ public class Main extends Application {
 		
 		
 		if(helpOPT){
-			System.out.println(HELP);
+			System.out.println(messages.getString("help"));
 			return;
 		}
 		
 		if(address == null){// check Address
-			System.out.println("Error : Invalid address...");
+			System.out.println(messages.getString("error.invalid.address"));
 			return;
 		}
 		if(port == null){//Check port
-			System.out.println("Error : Invalid port...");
+			System.out.println(messages.getString("error.invalid.port"));
 			return;
 		}else if(port.intValue() < 0 || port.intValue() > 65535 ){
-			System.out.println("Error : Invalid port...");
+			System.out.println(messages.getString("error.invalid.port"));
 			return;
 		}
 		
