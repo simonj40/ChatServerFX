@@ -38,7 +38,7 @@ public abstract class  AbstractMultichatServer implements MultichatServer, Runna
 		this.address = address;
 		this.port = port;
 		
-		Locale locale = new Locale("fr", "FR");
+		Locale locale = Locale.getDefault();
 		messages = ResourceBundle.getBundle("Internationalization",locale);
 	}
 	/**

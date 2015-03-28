@@ -24,7 +24,7 @@ public abstract class AbstractClient implements ClientInterface {
 	
 	public AbstractClient() {
 		
-		Locale locale = new Locale("fr", "FR");
+		Locale locale = Locale.getDefault();
 		messages = ResourceBundle.getBundle("Internationalization",locale);
 	}
 	

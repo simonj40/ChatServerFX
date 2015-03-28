@@ -59,7 +59,7 @@ public class Main extends Application {
 	
 	public static void main(String[] args) {
 		
-		Locale locale = new Locale("fr", "FR");
+		Locale locale = Locale.getDefault();
 		messages = ResourceBundle.getBundle("Internationalization",locale);
 
 
