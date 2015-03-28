@@ -10,19 +10,33 @@
 <GridPane prefHeight="398.0" prefWidth="433.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.ClientController">
    <children>
       <TextArea fx:id="textSend" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1" />
-      <TextArea fx:id="textReceived" editable="false" prefHeight="200.0" prefWidth="200.0" />
-      <Button mnemonicParsing="false" onAction="#send" text="Send" GridPane.halignment="RIGHT" GridPane.rowIndex="2" GridPane.valignment="CENTER">
-         <GridPane.margin>
-            <Insets bottom="5.0" right="10.0" top="5.0" />
-         </GridPane.margin>
-      </Button>
+      <SplitPane dividerPositions="0.6728538283062645" prefHeight="160.0" prefWidth="200.0">
+        <items>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+               <children>
+                  <TextArea fx:id="textReceived" editable="false" layoutX="34.0" layoutY="57.0" prefHeight="272.0" prefWidth="286.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+               </children>
+            </AnchorPane>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+               <children>
+                  <BorderPane layoutX="-77.0" layoutY="-7.0" prefHeight="272.0" prefWidth="137.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                     <top>
+                        <Label text="Buddy List" BorderPane.alignment="CENTER" />
+                     </top>
+                     <center>
+                        <ListView fx:id="buddyList" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
+                     </center>
+                  </BorderPane>
+               </children>
+            </AnchorPane>
+        </items>
+      </SplitPane>
    </children>
    <columnConstraints>
       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
    </columnConstraints>
    <rowConstraints>
       <RowConstraints maxHeight="285.0" minHeight="10.0" prefHeight="274.0" vgrow="SOMETIMES" />
-      <RowConstraints maxHeight="155.0" minHeight="0.0" prefHeight="92.0" vgrow="SOMETIMES" />
-      <RowConstraints maxHeight="75.0" minHeight="10.0" prefHeight="32.0" vgrow="SOMETIMES" />
+      <RowConstraints maxHeight="155.0" minHeight="0.0" prefHeight="83.0" vgrow="SOMETIMES" />
    </rowConstraints>
 </GridPane>

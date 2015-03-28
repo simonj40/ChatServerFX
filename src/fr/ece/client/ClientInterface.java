@@ -3,6 +3,7 @@
  */
 package fr.ece.client;
 
+import javafx.beans.property.StringProperty;
 import application.ClientController;
 
 /**
@@ -12,7 +13,7 @@ import application.ClientController;
 public interface ClientInterface {
 	
 	public void send(String message);
-	public void setListener(ClientController controller);
+	public void setController(ClientController controller);
 	
 
 }

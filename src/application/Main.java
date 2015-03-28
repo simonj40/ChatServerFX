@@ -3,34 +3,42 @@ package application;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Map;
 
+import fr.ece.client.AbstractClient;
 import fr.ece.client.Client;
-import fr.ece.client.ClientInterface;
 import fr.ece.client.MulticastClient;
 import fr.ece.server.AbstractMultichatServer;
 import fr.ece.server.NioServer;
 import fr.ece.server.Server;
 import gnu.getopt.Getopt;
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import javafx.scene.Scene;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 
 
 public class Main extends Application {
 	
-	private static int PORT = 1234;
 	private static String OPT = "hnscma:p:";
 	private static String HELP = "Help !";
 	
-	private static ClientInterface client;
+	private static AbstractClient client;
 	
 	
 	@Override
 	public void start(Stage primaryStage) {
+		
+		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+			@Override
+			public void handle(WindowEvent e) {
+				Platform.exit();
+				System.exit(0);
+			}
+		});
 
 		try {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("ClientView.fxml"));

@@ -20,7 +20,7 @@ import javafx.concurrent.Task;
  * @author Simon
  *
  */
-public class MulticastClient implements ClientInterface {
+public class MulticastClient extends AbstractClient {
 	
 	MulticastSocket socket;
 	InetAddress group;
@@ -55,7 +55,7 @@ public class MulticastClient implements ClientInterface {
 	 * @see fr.ece.client.ClientInterface#setListener(fr.ece.view.ClientController)
 	 */
 	@Override
-	public void setListener(ClientController controller) {
+	public void setController(ClientController controller) {
 		
 		Receiver receiver = new Receiver();
 		receiver.messageProperty().addListener(new ChangeListener<String>() {
@@ -86,8 +86,7 @@ public class MulticastClient implements ClientInterface {
 				String answer = new String(buf);
 				this.updateMessage(answer);
 			}
-		}
-		
+		}	
 	}
 
 

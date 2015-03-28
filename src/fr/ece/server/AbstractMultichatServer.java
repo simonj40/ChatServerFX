@@ -4,6 +4,9 @@
 package fr.ece.server;
 
 import java.net.InetAddress;
+import java.util.HashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Simon
@@ -11,6 +14,16 @@ import java.net.InetAddress;
  */
 public abstract class  AbstractMultichatServer implements MultichatServer, Runnable   {
 
+	protected String welcome = "WELCOM TO MESSENGER 2.0 !";
+	protected String tag = "<#BUDDYUP>";
+	protected String defaultBuddyName = "Anonymous Buddy";
+	
+	protected HashMap<Integer, String> buddyMap = new HashMap<>();
+	protected Lock buddyLock = new ReentrantLock();
+
+
+
+	
 	private InetAddress address;
 	private int port;
 	/**

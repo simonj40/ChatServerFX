@@ -14,10 +14,14 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 /**
  * @author Simon
@@ -27,8 +31,9 @@ public class Server extends AbstractMultichatServer {
 
 	private int BACKLOG = 5;
 	private HashMap<Integer, BufferedWriter> writers = new HashMap<Integer, BufferedWriter>();
-	private Lock lock = new ReentrantLock();
+	private Lock writerLock = new ReentrantLock();
 
+	
 	/**
 	 * @param address
 	 * @param port
@@ -37,10 +42,10 @@ public class Server extends AbstractMultichatServer {
 		super(address, port);
 	}
 
-	
-	//NOT USED ===> Runnable (use run instead)
+	// NOT USED ===> this class extends Runnable (use run instead)
 	public void start() throws IOException {
-		ServerSocket socket = new ServerSocket(this.getPort(), BACKLOG, this.getAddress());
+		ServerSocket socket = new ServerSocket(this.getPort(), BACKLOG,
+				this.getAddress());
 		while (true) {
 			Socket con = socket.accept();
 			Messenger messenger = new Messenger(con);
@@ -48,18 +53,20 @@ public class Server extends AbstractMultichatServer {
 			System.out.println("Connection accepted from "
 					+ con.getInetAddress());
 		}
-		
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Runnable#run()
 	 */
 	@Override
 	public void run() {
-	
+
 		ServerSocket socket = null;
 		try {
-			socket = new ServerSocket(this.getPort(), BACKLOG, this.getAddress());
+			socket = new ServerSocket(this.getPort(), BACKLOG,
+					this.getAddress());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -75,20 +82,32 @@ public class Server extends AbstractMultichatServer {
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}		
+			}
 		}
 	}
-	
-	
+
+	private void updateBuddyList(){
+
+		buddyLock.lock();
+		String json = JSONValue.toJSONString(buddyMap);
+		System.out.println("JSON Array: "+json);
+		(new Thread( new Broadcaster(tag+json) )).start();;
+		buddyLock.unlock();
+
+	}
 
 	private class Broadcaster implements Runnable {
 
 		String message;
-		int hashcode;
+		Integer hashcode = null;
 
 		public Broadcaster(String message, int hashcode) {
 			this.message = message;
-			this.hashcode = hashcode;
+			this.hashcode = new Integer(hashcode);
+		}
+
+		public Broadcaster(String message) {
+			this.message = message;
 		}
 
 		/*
@@ -98,9 +117,9 @@ public class Server extends AbstractMultichatServer {
 		 */
 		@Override
 		public void run() {
-			lock.lock();
+			writerLock.lock();
 			for (Entry<Integer, BufferedWriter> entry : writers.entrySet()) {
-				if (entry.getKey().intValue() != hashcode) {
+				if (!entry.getKey().equals(hashcode)) {
 					try {
 						entry.getValue().write(message);
 						entry.getValue().newLine();
@@ -111,21 +130,26 @@ public class Server extends AbstractMultichatServer {
 					}
 				}
 			}
-			lock.unlock();
+			writerLock.unlock();
 		}
-
 	}
 
 	private class Messenger implements Runnable {
 
 		private Socket socket;
-
+		String nickname = defaultBuddyName;
+		boolean nicknameSet = false;
+		
 		/**
 		 * @param socket
 		 */
 		public Messenger(Socket socket) {
 			super();
 			this.socket = socket;
+			buddyLock.lock();
+			buddyMap.put(this.hashCode(), nickname);
+			buddyLock.unlock();
+			// TODO update buddy list
 		}
 
 		/*
@@ -137,7 +161,7 @@ public class Server extends AbstractMultichatServer {
 		public void run() {
 			InputStream input;
 			OutputStream output;
-			String nickname = "";
+
 			try {
 				input = socket.getInputStream();
 				output = socket.getOutputStream();
@@ -146,11 +170,15 @@ public class Server extends AbstractMultichatServer {
 				BufferedReader reader = new BufferedReader(
 						new InputStreamReader(input));
 				// store writer in map
+				writerLock.lock();
 				writers.put(this.hashCode(), writer);
+				writerLock.unlock();
 				// Welcome message
-				writer.write("WELCOM TO MESSENGER 1.0 !");
+				writer.write(welcome);
 				writer.newLine();
 				writer.flush();
+				
+				updateBuddyList();
 				// read write loop
 				String message;
 				while (((message = reader.readLine()) != null)) {
@@ -160,11 +188,15 @@ public class Server extends AbstractMultichatServer {
 					// Broadcast message
 					String[] arrayMessage = message.split(" ");
 					if (arrayMessage[0].equals("/nick")) {
-						if (nickname.isEmpty()) {
+						if (!nicknameSet) {
 							// set nickname
 							nickname = arrayMessage[1];
-							writer.write("Nickname has been set : "
-									+ nickname);
+							buddyLock.lock();
+							buddyMap.put(this.hashCode(), this.nickname);
+							buddyLock.unlock();
+							updateBuddyList();
+							nicknameSet = true;
+							writer.write("Nickname has been set : " + nickname);
 							writer.newLine();
 							writer.flush();
 						} else {
@@ -175,15 +207,20 @@ public class Server extends AbstractMultichatServer {
 						}
 					} else {
 						new Thread(new Broadcaster(nickname + " : " + message,
-								this.hashCode())).start();
+								new Integer(this.hashCode()))).start();
 					}
-
 				}
 
 				System.out.println("Connection closed "
 						+ socket.getLocalAddress());
 				// remove writr from map
+				writerLock.lock();
 				writers.remove(this.hashCode());
+				writerLock.unlock();
+				buddyLock.lock();
+				buddyMap.remove(this.hashCode());
+				buddyLock.unlock();
+				updateBuddyList();
 
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -192,5 +229,4 @@ public class Server extends AbstractMultichatServer {
 		}
 	}
 
-	
 }
