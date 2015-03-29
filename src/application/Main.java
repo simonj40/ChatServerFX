@@ -61,6 +61,7 @@ public class Main extends Application {
 	}
 	
 	public static void main(String[] args) {
+		
         Locale locale = Locale.getDefault();
 		messages = ResourceBundle.getBundle("Internationalization",locale);
 
@@ -88,7 +89,6 @@ public class Main extends Application {
 		longopts[6] = new LongOpt("server", LongOpt.NO_ARGUMENT, null, 's');
 		longopts[7] = new LongOpt("client", LongOpt.NO_ARGUMENT, null, 'c');
 		
-		 //Getopt g = new Getopt("testprog", argv, "-:bc::d:hW;", longopts);
 		
 		int c;
 		Getopt g = new Getopt("ChatServer", args, OPT, longopts);
@@ -97,26 +97,26 @@ public class Main extends Application {
 			switch(c){
 				case 'h' :
 					helpOPT = true;
-					System.out.print(messages.getString("option.help.selected"));
+					//System.out.print(messages.getString("option.help.selected"));
 					break;
 				case 'n' :
 					nioOPT = true;
-					System.out.print(messages.getString("option.nio.selected"));
+					//System.out.print(messages.getString("option.nio.selected"));
 					break;
 				case 's' :
 					serverOPT = true;
-					System.out.println(messages.getString("option.start.server.selected"));
+					//System.out.println(messages.getString("option.start.server.selected"));
 					break;
 				case 'c' :
 					clientOPT = true;
-					System.out.println(messages.getString("option.client.selected"));
+					//System.out.println(messages.getString("option.client.selected"));
 					break;
 				case 'm' :
 					multicast = true;
-					System.out.println(messages.getString("option.multicast.client.selected"));
+					//System.out.println(messages.getString("option.multicast.client.selected"));
 					break;
 				case 'a' :
-					System.out.println(messages.getString("option.address.selected"));
+					//System.out.println(messages.getString("option.address.selected"));
 					try {
 						address = InetAddress.getByName(g.getOptarg());
 					} catch (UnknownHostException e) {
@@ -125,7 +125,7 @@ public class Main extends Application {
 					}
 					break;
 				case 'p' :
-					System.out.println(messages.getString("option.port.selected"));
+					//System.out.println(messages.getString("option.port.selected"));
 					try {
 						String sPort = g.getOptarg();
 						int p = Integer.parseInt(sPort);
@@ -143,18 +143,29 @@ public class Main extends Application {
 		
 		if(helpOPT){
 			System.out.println(messages.getString("help"));
+			Platform.exit();
+			System.exit(0);
 			return;
 		}
 		
 		if(address == null){// check Address
 			System.out.println(messages.getString("error.invalid.address"));
+			System.out.println(messages.getString("help"));
+			Platform.exit();
+			System.exit(0);
 			return;
 		}
 		if(port == null){//Check port
 			System.out.println(messages.getString("error.invalid.port"));
+			System.out.println(messages.getString("help"));
+			Platform.exit();
+			System.exit(0);
 			return;
 		}else if(port.intValue() < 0 || port.intValue() > 65535 ){
 			System.out.println(messages.getString("error.invalid.port"));
+			System.out.println(messages.getString("help"));
+			Platform.exit();
+			System.exit(0);
 			return;
 		}
 		
@@ -187,10 +198,6 @@ public class Main extends Application {
 		} else if (clientOPT && multicast){
 			System.out.println(messages.getString("help"));
 			return;
-		}
-		
-		if(debug) {
-			//if debug is ON, add console handler to the logger
 		}
 
         myLogger = new ChatLogger(debug, Main.class.getName());
