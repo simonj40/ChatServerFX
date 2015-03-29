@@ -10,8 +10,10 @@ import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
 import java.net.UnknownHostException;
 import java.nio.channels.SocketChannel;
+import java.util.logging.Level;
 
 import application.ClientController;
+import fr.ece.logger.ChatLogger;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
@@ -21,6 +23,8 @@ import javafx.concurrent.Task;
  *
  */
 public class MulticastClient extends AbstractClient {
+
+    private ChatLogger myLogger;
 	
 	MulticastSocket socket;
 	InetAddress group;
@@ -28,7 +32,9 @@ public class MulticastClient extends AbstractClient {
 	String name;
 	
 	
-	public MulticastClient (InetAddress group, int port) throws IOException{
+	public MulticastClient (InetAddress group, int port, boolean debugOn) throws IOException{
+
+        myLogger = new ChatLogger(debugOn, MulticastClient.class.getName());
 		this.group = group;
 		this.PORT = port;
 		socket =  new MulticastSocket(PORT);
@@ -46,7 +52,7 @@ public class MulticastClient extends AbstractClient {
 			socket.send(pkt);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+            myLogger.logException(Level.WARNING,"logger.fail.send.message", e);
 		}
 	}
 	

@@ -3,6 +3,8 @@
  */
 package fr.ece.server;
 
+import fr.ece.logger.ChatLogger;
+
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Locale;
@@ -25,8 +27,6 @@ public abstract class  AbstractMultichatServer implements MultichatServer, Runna
 
 	public static ResourceBundle messages;
 
-
-	
 	private InetAddress address;
 	private int port;
 	/**

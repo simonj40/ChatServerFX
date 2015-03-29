@@ -5,10 +5,13 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.logging.*;
 
 import fr.ece.client.AbstractClient;
 import fr.ece.client.Client;
 import fr.ece.client.MulticastClient;
+import fr.ece.logger.ChatLogger;
+import fr.ece.logger.LogFormatter;
 import fr.ece.server.AbstractMultichatServer;
 import fr.ece.server.NioServer;
 import fr.ece.server.Server;
@@ -25,8 +28,10 @@ import javafx.scene.layout.GridPane;
 
 
 public class Main extends Application {
-	
-	private static AbstractClient client;
+    //create global object for logger class
+    private static ChatLogger myLogger;
+
+    private static AbstractClient client;
 	private static ResourceBundle messages;
 	
 	@Override
@@ -51,17 +56,15 @@ public class Main extends Application {
 			primaryStage.setTitle(messages.getString("chat.client.title"));
 			primaryStage.show();
 		} catch(Exception e) {
-			e.printStackTrace();
+            myLogger.logException(Level.SEVERE,"logger.fail.init.graphics", e);
 		}
 	}
 	
 	public static void main(String[] args) {
-		
-		Locale locale = Locale.getDefault();
+        Locale locale = Locale.getDefault();
 		messages = ResourceBundle.getBundle("Internationalization",locale);
 
-
-AbstractMultichatServer server = null;
+        AbstractMultichatServer server = null;
 		
 		InetAddress address = null;
 		Integer port = null;
@@ -72,8 +75,8 @@ AbstractMultichatServer server = null;
 		boolean clientOPT = false;
 		boolean multicast = false;
 		boolean debug = false;
-		
-		String OPT = "hnscma:W;p:W;";
+
+        String OPT = "hnscma:W;p:W;";
 		LongOpt[] longopts = new LongOpt[8];
 		
 		longopts[0] = new LongOpt("help", LongOpt.NO_ARGUMENT, null, 'h');
@@ -117,6 +120,7 @@ AbstractMultichatServer server = null;
 					try {
 						address = InetAddress.getByName(g.getOptarg());
 					} catch (UnknownHostException e) {
+                        myLogger.logException(Level.SEVERE,"logger.bad.address", e);
 						address = null;
 					}
 					break;
@@ -127,7 +131,7 @@ AbstractMultichatServer server = null;
 						int p = Integer.parseInt(sPort);
 						port = new Integer(p);
 					} catch (NumberFormatException e) {
-						port = null;
+                        port = null;
 					}
 					break;
 				case 'd' :
@@ -156,13 +160,13 @@ AbstractMultichatServer server = null;
 		
 		if(serverOPT){
 			if(nioOPT){
-				server = new NioServer(address, port);
+				server = new NioServer(address, port, debug);
 			}else{
-				server = new Server(address, port);
+				server = new Server(address, port, debug);
 			}
 			(new Thread(server)).start();
 		}else if (nioOPT) {
-			server = new NioServer(address, port);
+			server = new NioServer(address, port, debug);
 			(new Thread(server)).start();
 		}
 		
@@ -171,25 +175,26 @@ AbstractMultichatServer server = null;
 				client = new Client(address, port);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+                myLogger.logException(Level.SEVERE,"logger.failed.client", e);
+            }
 		}else if (!clientOPT && multicast) {
 			try {
-				client = new MulticastClient(address, port);
+				client = new MulticastClient(address, port, debug);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+                myLogger.logException(Level.SEVERE,"logger.failed.client", e);
+            }
 		} else if (clientOPT && multicast){
 			System.out.println(messages.getString("help"));
 			return;
 		}
 		
 		if(debug) {
-			//TODO do something
+			//if debug is ON, add console handler to the logger
 		}
-		
-		if(clientOPT || multicast) launch(args);
+
+        myLogger = new ChatLogger(debug, Main.class.getName());
+        if(clientOPT || multicast) launch(args);
 		else return;
 
 		/*

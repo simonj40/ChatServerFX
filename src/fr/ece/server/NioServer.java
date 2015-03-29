@@ -28,7 +28,9 @@ import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.Set;
+import java.util.logging.Level;
 
+import fr.ece.logger.ChatLogger;
 import org.json.simple.JSONValue;
 
 /**
@@ -37,6 +39,7 @@ import org.json.simple.JSONValue;
  */
 public class NioServer extends AbstractMultichatServer {
 
+    private ChatLogger myLogger;
 	private Lock clientLock = new ReentrantLock();
 	private Map<Integer, SocketChannel> clientsmap = new HashMap<>();
 
@@ -45,9 +48,10 @@ public class NioServer extends AbstractMultichatServer {
 	 * @param address
 	 * @param port
 	 */
-	public NioServer(InetAddress address, int port) {
+	public NioServer(InetAddress address, int port, boolean debugOn) {
 		super(address, port);
-	}
+        myLogger = new ChatLogger(debugOn, NioServer.class.getName());
+    }
 
 	// NOT USED ===> Runnable (use run instead)
 	/*
@@ -153,8 +157,8 @@ public class NioServer extends AbstractMultichatServer {
 						}
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+                        myLogger.logException(Level.WARNING,"logger.fail.create.client.map", e);
+                    }
 					
 				}
 			} else {
@@ -168,8 +172,8 @@ public class NioServer extends AbstractMultichatServer {
 							}
 						} catch (IOException e) {
 							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
+							myLogger.logException(Level.WARNING,"logger.fail.create.client.map", e);
+                        }
 					}
 				}
 			}
@@ -282,8 +286,9 @@ public class NioServer extends AbstractMultichatServer {
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+            myLogger.logException(Level.WARNING,"logger.fail.create.server.socket.channel", e);
+
+        }
 
 	}
 }

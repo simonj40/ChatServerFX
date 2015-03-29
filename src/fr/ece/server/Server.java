@@ -20,7 +20,9 @@ import java.util.ResourceBundle;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
 
+import fr.ece.logger.ChatLogger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
@@ -30,6 +32,7 @@ import org.json.simple.JSONValue;
  */
 public class Server extends AbstractMultichatServer {
 
+    private ChatLogger myLogger;
 	private int BACKLOG = 5;
 	private HashMap<Integer, BufferedWriter> writers = new HashMap<Integer, BufferedWriter>();
 	private Lock buddyLock = new ReentrantLock();
@@ -40,9 +43,10 @@ public class Server extends AbstractMultichatServer {
 	 * @param address
 	 * @param port
 	 */
-	public Server(InetAddress address, int port) {
+	public Server(InetAddress address, int port, boolean debugOn) {
 		super(address, port);
-	}
+        myLogger = new ChatLogger(debugOn, Server.class.getName());
+    }
 
 	// NOT USED ===> this class extends Runnable (use run instead)
 	public void start() throws IOException {
@@ -70,7 +74,7 @@ public class Server extends AbstractMultichatServer {
 					this.getAddress());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+            myLogger.logException(Level.SEVERE,"logger.fail.init.socket", e);
 		}
 		while (true) {
 			Socket con;
@@ -80,10 +84,10 @@ public class Server extends AbstractMultichatServer {
 				(new Thread(messenger)).start();
 				System.out.println(messages.getString("connection.accepted.from")
 						+ con.getInetAddress());
-			} catch (IOException e) {
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}		
+                myLogger.logException(Level.SEVERE,"logger.fail.init.socket", e);
+            }
 		}
 	}
 
@@ -127,8 +131,9 @@ public class Server extends AbstractMultichatServer {
 						entry.getValue().flush();
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+                        myLogger.logException(Level.WARNING,"logger.fail.write.message", e);
+
+                    }
 				}
 			}
 			writerLock.unlock();
@@ -225,8 +230,9 @@ public class Server extends AbstractMultichatServer {
 
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+                myLogger.logException(Level.SEVERE,"logger.fail.init.socket.comm", e);
+
+            }
 		}
 	}
 
