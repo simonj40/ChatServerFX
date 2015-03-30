@@ -86,7 +86,7 @@ public class Client extends AbstractClient {
 			String s;
 			while(true){
 				if ((s = in.readLine()) != null) {
-					System.out.println(messages.getString("received") +s);
+					//System.out.println(messages.getString("received") +s);
 					if(s.contains(tag)){
 						Map jsonMap = (Map)JSONValue.parse(s.replace(tag, ""));
 						Iterator iter = jsonMap.entrySet().iterator();

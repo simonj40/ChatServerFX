@@ -1,0 +1,1 @@
+To build the application, just issue the command "mvn install" in the project root, where the pom.xml is located.

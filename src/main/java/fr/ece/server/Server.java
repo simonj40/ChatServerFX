@@ -95,7 +95,7 @@ public class Server extends AbstractMultichatServer {
 
 		buddyLock.lock();
 		String json = JSONValue.toJSONString(buddyMap);
-		System.out.println("JSON Array: "+json);
+		//System.out.println("JSON Array: "+json);
 		(new Thread( new Broadcaster(tag+json) )).start();;
 		buddyLock.unlock();
 
@@ -190,7 +190,7 @@ public class Server extends AbstractMultichatServer {
 				while (((message = reader.readLine()) != null)) {
 
 					// get message and display it
-					System.out.println(message);
+					//System.out.println(message);
 					// Broadcast message
 					String[] arrayMessage = message.split(" ");
 					if (arrayMessage[0].equals("/nick")) {

@@ -94,7 +94,7 @@ public class NioServer extends AbstractMultichatServer {
 						Charset charset = Charset.defaultCharset();
 						bbuf.flip();
 						CharBuffer cbuf = charset.decode(bbuf);
-						System.out.println(cbuf);
+						//System.out.println(cbuf);
 						cbuf.compact();
 					} else {
 						System.out.println(client.getRemoteAddress()
@@ -117,9 +117,9 @@ public class NioServer extends AbstractMultichatServer {
 
 		buddyLock.lock();
 		String json = JSONValue.toJSONString(buddyMap);
-		System.out.println(messages.getString("json.array") + json);
+		//System.out.println(messages.getString("json.array") + json);
 		(new Thread(new Broadcaster(tag + json))).start();
-		System.out.println(messages.getString("send.json")+tag + json);
+		//System.out.println(messages.getString("send.json")+tag + json);
 		buddyLock.unlock();
 	}
 
@@ -262,7 +262,7 @@ public class NioServer extends AbstractMultichatServer {
 							} else {
 								String message = buddyMap.get(new Integer(client.hashCode()))+": "+cbuf.toString();
 								(new Thread(new Broadcaster(message, client.hashCode()))).start();;
-								System.out.println(cbuf);
+								//System.out.println(cbuf);
 								cbuf.compact();
 							}
 

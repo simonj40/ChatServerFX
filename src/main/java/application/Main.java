@@ -1,5 +1,5 @@
 package application;
-	
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -33,10 +33,10 @@ public class Main extends Application {
 
     private static AbstractClient client;
 	private static ResourceBundle messages;
-	
+
 	@Override
 	public void start(Stage primaryStage) {
-		
+
 		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
 			@Override
 			public void handle(WindowEvent e) {
@@ -46,12 +46,12 @@ public class Main extends Application {
 		});
 
 		try {
-			FXMLLoader loader = new FXMLLoader(getClass().getResource("ClientView.fxml"));
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/ClientView.fxml"));
 			GridPane root = (GridPane)loader.load();
 			ClientController controller = (ClientController)loader.getController();
 			controller.setClient(client);
 			Scene scene = new Scene(root,400,400);
-			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
+			scene.getStylesheets().add(getClass().getResource("/application.css").toExternalForm());
 			primaryStage.setScene(scene);
 			primaryStage.setTitle(messages.getString("chat.client.title"));
 			primaryStage.show();
@@ -59,17 +59,17 @@ public class Main extends Application {
             myLogger.logException(Level.SEVERE,"logger.fail.init.graphics", e);
 		}
 	}
-	
+
 	public static void main(String[] args) {
-		
+
         Locale locale = Locale.getDefault();
 		messages = ResourceBundle.getBundle("Internationalization",locale);
 
         AbstractMultichatServer server = null;
-		
+
 		InetAddress address = null;
 		Integer port = null;
-		
+
 		boolean helpOPT =false;
 		boolean nioOPT = false;
 		boolean serverOPT = false;
@@ -79,17 +79,17 @@ public class Main extends Application {
 
         String OPT = "hnscma:W;p:W;";
 		LongOpt[] longopts = new LongOpt[8];
-		
+
 		longopts[0] = new LongOpt("help", LongOpt.NO_ARGUMENT, null, 'h');
-		longopts[1] = new LongOpt("address", LongOpt.REQUIRED_ARGUMENT, null, 'a'); 
+		longopts[1] = new LongOpt("address", LongOpt.REQUIRED_ARGUMENT, null, 'a');
 		longopts[2] = new LongOpt("debug", LongOpt.NO_ARGUMENT, null, 'd');
 		longopts[3] = new LongOpt("multicast", LongOpt.NO_ARGUMENT, null, 'm');
 		longopts[4] = new LongOpt("nio", LongOpt.NO_ARGUMENT, null, 'n');
 		longopts[5] = new LongOpt("port", LongOpt.REQUIRED_ARGUMENT, null, 'p');
 		longopts[6] = new LongOpt("server", LongOpt.NO_ARGUMENT, null, 's');
 		longopts[7] = new LongOpt("client", LongOpt.NO_ARGUMENT, null, 'c');
-		
-		
+
+
 		int c;
 		Getopt g = new Getopt("ChatServer", args, OPT, longopts);
 		//read options and arguments
@@ -139,15 +139,15 @@ public class Main extends Application {
 					break;
 			}
 		}
-		
-		
+
+
 		if(helpOPT){
 			System.out.println(messages.getString("help"));
 			Platform.exit();
 			System.exit(0);
 			return;
 		}
-		
+
 		if(address == null){// check Address
 			System.out.println(messages.getString("error.invalid.address"));
 			System.out.println(messages.getString("help"));
@@ -168,7 +168,7 @@ public class Main extends Application {
 			System.exit(0);
 			return;
 		}
-		
+
 		if(serverOPT){
 			if(nioOPT){
 				server = new NioServer(address, port, debug);
@@ -180,7 +180,7 @@ public class Main extends Application {
 			server = new NioServer(address, port, debug);
 			(new Thread(server)).start();
 		}
-		
+
 		if(clientOPT && !multicast){
 			try {
 				client = new Client(address, port);
@@ -210,7 +210,7 @@ public class Main extends Application {
 			System.out.println("Server address" + InetAddress.getByName("localhost").toString());
 			NewServer server = new NewServer(InetAddress.getByName("localhost"), PORT);
 			server.start();
-			
+
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -218,11 +218,11 @@ public class Main extends Application {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		*/
-		
+
 	}
 
-		
+
 
 }

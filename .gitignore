@@ -6,3 +6,4 @@ bin/**
 output/
 dist
 jar-in-jar-loader.zip
+build.fxbuild
